@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bazaarika Free Fire Tournament | Register Now</title>
+  <meta name="description" content="Join the Bazaarika Free Fire Tournament. Free entry, cash prizes, and gifts! Register now." />
+  <meta property="og:title" content="Bazaarika Free Fire Tournament – Register Now" />
+  <meta property="og:description" content="Free entry • Win ₹100 + Gifts • Limited slots • Register at bazaarika.in" />
+  <meta property="og:image" content="https://i.postimg.cc/W3ZZ34MS/IMG-20250814-230211.jpg" />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#111827" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0b0f14;       /* deep space */
+      --card:#121826;     /* card bg */
+      --muted:#9aa4b2;    /* muted text */
+      --text:#e6eaf1;     /* main text */
+      --primary:#00e6ff;  /* neon cyan */
+      --accent:#ff7a18;   /* fiery orange */
+      --success:#22c55e;  /* green */
+      --danger:#ef4444;   /* red */
+      --gold:#ffd166;     /* prize gold */
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,"Noto Sans",sans-serif;
+      background: radial-gradient(1200px 600px at 80% -10%, rgba(0,230,255,0.15), transparent 60%),
+                  radial-gradient(1000px 600px at 10% 0%, rgba(255,122,24,0.12), transparent 60%),
+                  var(--bg);
+      color:var(--text);
+      line-height:1.6;
+    }
+    a{color:var(--primary);text-decoration:none}
+    .container{max-width:1100px;margin:0 auto;padding:20px}
+
+    /* Header */
+    header{
+      position:sticky;top:0;z-index:50;
+      background:linear-gradient(180deg, rgba(11,15,20,.95), rgba(11,15,20,.75) 70%, transparent);
+      backdrop-filter:blur(10px);
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 0}
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand img{width:42px;height:42px;object-fit:contain;border-radius:10px;box-shadow:0 0 0 2px rgba(255,255,255,.07)}
+    .brand h1{font-family:Orbitron,Inter,sans-serif;font-size:15px;margin:0;letter-spacing:.5px}
+    .cta-row{display:flex;gap:10px;align-items:center}
+    .btn{padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:#101623;color:var(--text);font-weight:600;cursor:pointer}
+    .btn.primary{background:linear-gradient(135deg,var(--primary),#6ff3ff 50%,var(--primary));color:#001218;border:none}
+    .btn.ghost{background:transparent;font-size:15px}
+
+    /* Hero */
+    .hero{position:relative;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.08);box-shadow:0 10px 40px rgba(0,0,0,.45)}
+    .hero img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;filter:saturate(1.05) contrast(1.05)}
+    .hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,.4), rgba(0,0,0,.6) 40%, rgba(0,0,0,.85));display:flex;align-items:flex-end}
+    .hero-content{padding:22px}
+    .badge{display:inline-flex;gap:8px;align-items:center;background:rgba(0,230,255,.14);border:1px solid rgba(0,230,255,.35);padding:6px 10px;border-radius:999px;font-size:12px}
+    .hero h2{font-family:Orbitron,Inter,sans-serif;font-size:28px;margin:10px 0 6px}
+    .hero p{margin:0;color:var(--muted)}
+
+    /* Grid */
+    .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:20px;margin-top:18px}
+    @media (max-width: 920px){.grid{grid-template-columns:1fr}}
+
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+    .card h3{margin:0 0 12px;font-family:Orbitron,Inter,sans-serif;letter-spacing:.3px}
+    .muted{color:var(--muted)}
+
+    /* Prizes */
+    .prize-list{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    @media (max-width: 700px){.prize-list{grid-template-columns:1fr}}
+    .prize{padding:14px;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.08)}
+    .prize h4{margin:0 0 8px}
+    .prize .tag{display:inline-block;margin-top:6px;padding:4px 8px;border-radius:999px;border:1px dashed rgba(255,255,255,.2);font-size:12px}
+    .p1 h4{color:var(--gold)}
+    .p2 h4{color:#c0c7d4}
+    .p3 h4{color:#c89666}
+
+    /* Form */
+    form{display:grid;gap:12px}
+    label{font-weight:600}
+    input, select, textarea{
+      width:100%;padding:12px 12px;border-radius:12px;background:#0e1522;border:1px solid rgba(255,255,255,.1);color:var(--text)
+    }
+    input:focus, select:focus, textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(0,230,255,.15)}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:700px){.two{grid-template-columns:1fr}}
+    .terms{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--muted)}
+    .terms input{width:auto;margin-top:4px}
+
+    /* Table */
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    th,td{text-align:left;padding:10px}
+    thead th{font-size:13px;color:var(--muted)}
+    tbody tr{background:#0f1624;border:1px solid rgba(255,255,255,.06)}
+    tbody tr td:first-child{border-radius:10px 0 0 10px}
+    tbody tr td:last-child{border-radius:0 10px 10px 0}
+
+    /* Footer */
+    footer{margin:30px 0 60px;color:var(--muted);text-align:center}
+
+    /* Toast */
+    .toast{position:fixed;right:18px;bottom:18px;background:#0f1624;border:1px solid rgba(255,255,255,.1);padding:12px 14px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.4);display:none}
+    .toast.ok{border-color:rgba(34,197,94,.5)}
+    .toast.err{border-color:rgba(239,68,68,.5)}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand">
+        <img src="https://i.postimg.cc/L5N86d0N/20250804-105521.png" alt="Bazaarika Logo" />
+        <h1>Bazaarika Free Fire Tournament</h1>
+      </div>
+      <div class="cta-row">
+        <a class="btn ghost" href="https://bazaarika.in/" target="_blank" rel="noopener">bazaarika.in↗</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- HERO (16:9) -->
+    <section class="hero" aria-label="Tournament Hero">
+      <img src="https://i.postimg.cc/W3ZZ34MS/IMG-20250814-230211.jpg" alt="Bazaarika Free Fire Tournament Thumbnail" />
+      <div class="hero-overlay">
+        <div class="hero-content">
+          <span class="badge">FREE ENTRY • Limited Slots</span>
+          <h2>Win Cash ₹100 + Gifts • Esports Style</h2>
+          <p>Register now • Share with your squad • Play fair • Claim rewards</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <!-- LEFT: Details + Form -->
+      <section class="card">
+        <h3>🎮 Tournament Details</h3>
+        <p class="muted">Format: <b>Solo Battle</b> (beginner-friendly). Map: <b>Bermuda</b>. Room details will be sent to registered players on match day.</p>
+        <div class="prize-list" style="margin:14px 0 8px">
+          <div class="prize p1">
+            <h4>🥇 1st Prize: ₹100 + Bazaarika Gift</h4>
+            <div class="tag">Winner Spotlight on Socials</div>
+          </div>
+          <div class="prize p2">
+            <h4>🥈 2nd Prize: ₹50 + Discount Coupon</h4>
+            <div class="tag">Extra Loot on Orders</div>
+          </div>
+          <div class="prize p3">
+            <h4>🥉 3rd Prize: ₹30 + Discount Coupon</h4>
+            <div class="tag">Save more on Bazaarika</div>
+          </div>
+        </div>
+        <p class="muted">All players get a special code: <b>FFGAME10</b> (flat 10% off*). *T&C apply.</p>
+        <hr style="border:none;border-top:1px solid rgba(255,255,255,.08);margin:14px 0">
+
+        <h3 id="register">📝 Register Now</h3>
+        <form id="regForm">
+          <div class="two">
+            <div>
+              <label for="playerName">Player Name / नाम *</label>
+              <input id="playerName" name="playerName" required placeholder="e.g., Raj Kumar" />
+            </div>
+            <div>
+              <label for="ffuid">Free Fire UID *</label>
+              <input id="ffuid" name="ffuid" required inputmode="numeric" pattern="[0-9]{4,}" placeholder="12-digit UID" />
+            </div>
+          </div>
+          <div class="two">
+            <div>
+              <label for="mode">Mode *</label>
+              <select id="mode" name="mode" required>
+                <option value="Solo" selected>Solo</option>
+                <option value="Duo">Duo</option>
+                <option value="Squad">Squad</option>
+              </select>
+            </div>
+            <div>
+              <label for="whatsapp">WhatsApp Number *</label>
+              <input id="whatsapp" name="whatsapp" required inputmode="tel" placeholder="10-digit mobile" pattern="[0-9]{10}" />
+            </div>
+          </div>
+          <div class="two">
+            <div>
+              <label for="city">City / शहर</label>
+              <input id="city" name="city" placeholder="Your city" />
+            </div>
+            <div>
+              <label for="age">Age / उम्र</label>
+              <input id="age" name="age" inputmode="numeric" pattern="[0-9]{1,2}" placeholder="16" />
+            </div>
+          </div>
+          <div>
+            <label for="ref">How did you hear? (Optional)</label>
+            <select id="ref" name="ref">
+              <option value="Instagram">Instagram</option>
+              <option value="WhatsApp">WhatsApp</option>
+              <option value="Telegram">Telegram</option>
+              <option value="Friend">Friend</option>
+              <option value="Other" selected>Other</option>
+            </select>
+          </div>
+          <div>
+            <label for="notes">Notes (Optional)</label>
+            <textarea id="notes" name="notes" rows="3" placeholder="Any request…"></textarea>
+          </div>
+          <div class="terms">
+            <input type="checkbox" id="agree" required />
+            <label for="agree">I agree to fair-play rules. No hacks/scripts. Disqualification on violation.</label>
+          </div>
+          <button class="btn primary" type="submit">Submit Registration</button>
+          <div id="status" class="muted" style="margin-top:8px"></div>
+        </form>
+      </section>
+
+      <!-- RIGHT: Quick Info / Rules / Registrations -->
+      <aside class="card">
+        <h3>⚡ Quick Info</h3>
+        <ul>
+          <li>Entry Fee: <b>FREE</b></li>
+          <li>Slots: <b>Limited</b> (first come, first served)</li>
+          <li>Room ID/Pass: shared on WhatsApp before match</li>
+          <li>Contact: <a href="https://bazaarika.in/" target="_blank" rel="noopener">bazaarika.in</a></li>
+        </ul>
+        <h3 style="margin-top:16px">📜 Rules</h3>
+        <ol>
+          <li>Only one account per player.</li>
+          <li>No emulators, no hacks, no teaming (Solo).</li>
+          <li>Ping/Network is player responsibility.</li>
+          <li>Screenshot winners + in-game results are final.</li>
+        </ol>
+        <h3 style="margin-top:16px">🧾 Recent Registrations</h3>
+        <div id="regWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Player</th>
+                <th>UID</th>
+                <th>Mode</th>
+                <th>City</th>
+              </tr>
+            </thead>
+            <tbody id="regTable">
+              <tr><td colspan="4" class="muted">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </aside>
+    </div>
+
+    <!-- About Bazaarika / Offer -->
+    <section class="card" style="margin-top:18px">
+      <h3>🛍️ Bazaarika Offers</h3>
+      <p>Use code <b>FFGAME10</b> on <a href="https://bazaarika.in/" target="_blank" rel="noopener">bazaarika.in</a> to get <b>10% OFF</b> on select categories. Winners will also receive exclusive gifts from Bazaarika. Follow us on social for upcoming tournaments!</p>
+    </section>
+
+    <footer>
+      © <span id="yy"></span> Bazaarika • Made for gamers, by gamers.
+    </footer>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // ====== CONFIG ======
+    const BLOB_URL = "https://jsonblob.com/api/jsonBlob/1405605860281081856"; // existing blob to store registrations
+
+    // ====== UTIL ======
+    const qs = (s, el=document) => el.querySelector(s);
+    const ce = (tag, props={}) => Object.assign(document.createElement(tag), props);
+
+    const toast = (msg, ok=true) => {
+      const t = qs('#toast');
+      t.textContent = msg;
+      t.className = 'toast ' + (ok ? 'ok' : 'err');
+      t.style.display = 'block';
+      setTimeout(()=> t.style.display='none', 3800);
+    };
+
+    const setStatus = (msg) => qs('#status').textContent = msg;
+
+    const formatRow = (r) => {
+      const tr = ce('tr');
+      tr.append(
+        ce('td',{textContent:r.playerName||'-'}),
+        ce('td',{textContent:r.ffuid||'-'}),
+        ce('td',{textContent:r.mode||'-'}),
+        ce('td',{textContent:r.city||'-'})
+      );
+      return tr;
+    };
+
+    // ====== DATA LAYER (JSONBlob) ======
+    async function loadRegistrations(){
+      try{
+        const res = await fetch(BLOB_URL, {method:'GET', headers:{'Accept':'application/json'}});
+        // If blob is newly created and empty, treat as []
+        if(!res.ok){
+          console.warn('GET failed', res.status);
+          return [];
+        }
+        const data = await res.json().catch(()=>[]);
+        if (Array.isArray(data)) return data;
+        // If structure is an object, try to read .registrations
+        if (data && Array.isArray(data.registrations)) return data.registrations;
+        return [];
+      }catch(e){
+        console.error(e);return [];
+      }
+    }
+
+    async function saveRegistration(newItem){
+      // Load existing, append, then PUT
+      const all = await loadRegistrations();
+      const withTime = { ...newItem, createdAt: new Date().toISOString() };
+      all.unshift(withTime);
+      const body = JSON.stringify(all, null, 2);
+      const res = await fetch(BLOB_URL, {
+        method:'PUT',
+        mode:'cors',
+        headers:{'Content-Type':'application/json'},
+        body
+      });
+      if(!res.ok){
+        throw new Error('Failed to save: ' + res.status);
+      }
+      return withTime;
+    }
+
+    // ====== UI BINDINGS ======
+    async function refreshTable(){
+      const tbody = qs('#regTable');
+      tbody.innerHTML = '<tr><td colspan="4" class="muted">Loading…</td></tr>';
+      const rows = await loadRegistrations();
+      tbody.innerHTML = '';
+      if(!rows.length){
+        tbody.append(ce('tr'));
+        tbody.firstChild.append(ce('td',{colSpan:4,textContent:'No registrations yet. Be the first!'}));
+        return;
+      }
+      rows.slice(0,20).forEach(r=> tbody.append(formatRow(r)));
+    }
+
+    function validatePhone(n){ return /^[0-9]{10}$/.test(n||''); }
+    function validateUID(uid){ return /^[0-9]{4,}$/.test(uid||''); }
+
+    async function onSubmit(e){
+      e.preventDefault();
+      const form = e.currentTarget;
+      const data = Object.fromEntries(new FormData(form).entries());
+
+      // Basic validations
+      if(!data.playerName || !data.ffuid || !data.whatsapp){
+        toast('Please fill all required fields.', false); return;
+      }
+      if(!validateUID(data.ffuid)){
+        toast('Enter a valid Free Fire UID.', false); return;
+      }
+      if(!validatePhone(data.whatsapp)){
+        toast('Enter a valid 10-digit WhatsApp number.', false); return;
+      }
+      if(!qs('#agree').checked){
+        toast('Please accept the fair-play rules.', false); return;
+      }
+
+      setStatus('Submitting…');
+      try{
+        const saved = await saveRegistration({
+          playerName: data.playerName.trim(),
+          ffuid: data.ffuid.trim(),
+          mode: data.mode,
+          whatsapp: data.whatsapp.trim(),
+          city: (data.city||'').trim(),
+          age: (data.age||'').trim(),
+          ref: data.ref,
+          notes: (data.notes||'').trim()
+        });
+        toast('Registered! We will contact you on WhatsApp.');
+        form.reset();
+        qs('#agree').checked = false;
+        setStatus('Success! Your slot will be confirmed on WhatsApp.');
+        refreshTable();
+      }catch(err){
+        console.error(err);
+        toast('Could not save. Please try again.', false);
+        setStatus('Error: Failed to submit.');
+      }
+    }
+
+    // Init
+    document.addEventListener('DOMContentLoaded', ()=>{
+      qs('#yy').textContent = new Date().getFullYear();
+      refreshTable();
+      qs('#regForm').addEventListener('submit', onSubmit);
+    });
+  </script>
+</body>
+</html>
