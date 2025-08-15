@@ -212,7 +212,7 @@
             <input type="checkbox" id="agree" required />
             <label for="agree">I agree to fair-play rules. No hacks/scripts. Disqualification on violation.</label>
           </div>
-          <button class="btn primary" type="submit">Submit Registration</button>
+          <button class="btn primary" type="submit">Pay ₹10 & Register</button>
           <div id="status" class="muted" style="margin-top:8px"></div>
         </form>
       </section>
@@ -265,138 +265,147 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script>
-    // ====== CONFIG ======
-    const BLOB_URL = "https://jsonblob.com/api/jsonBlob/1405605860281081856"; // existing blob to store registrations
+  <!-- Razorpay JS library -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-    // ====== UTIL ======
-    const qs = (s, el=document) => el.querySelector(s);
-    const ce = (tag, props={}) => Object.assign(document.createElement(tag), props);
+<script>
+  // ====== CONFIG ======
+  const BLOB_URL = "https://jsonblob.com/api/jsonBlob/1405605860281081856"; 
 
-    const toast = (msg, ok=true) => {
-      const t = qs('#toast');
-      t.textContent = msg;
-      t.className = 'toast ' + (ok ? 'ok' : 'err');
-      t.style.display = 'block';
-      setTimeout(()=> t.style.display='none', 3800);
-    };
+  // ====== UTIL ======
+  const qs = (s, el=document) => el.querySelector(s);
+  const ce = (tag, props={}) => Object.assign(document.createElement(tag), props);
 
-    const setStatus = (msg) => qs('#status').textContent = msg;
+  const toast = (msg, ok=true) => {
+    const t = qs('#toast');
+    t.textContent = msg;
+    t.className = 'toast ' + (ok ? 'ok' : 'err');
+    t.style.display = 'block';
+    setTimeout(()=> t.style.display='none', 3800);
+  };
 
-    const formatRow = (r) => {
-      const tr = ce('tr');
-      tr.append(
-        ce('td',{textContent:r.playerName||'-'}),
-        ce('td',{textContent:r.ffuid||'-'}),
-        ce('td',{textContent:r.mode||'-'}),
-        ce('td',{textContent:r.city||'-'})
-      );
-      return tr;
-    };
+  const setStatus = (msg) => qs('#status').textContent = msg;
 
-    // ====== DATA LAYER (JSONBlob) ======
-    async function loadRegistrations(){
-      try{
-        const res = await fetch(BLOB_URL, {method:'GET', headers:{'Accept':'application/json'}});
-        // If blob is newly created and empty, treat as []
-        if(!res.ok){
-          console.warn('GET failed', res.status);
-          return [];
-        }
-        const data = await res.json().catch(()=>[]);
-        if (Array.isArray(data)) return data;
-        // If structure is an object, try to read .registrations
-        if (data && Array.isArray(data.registrations)) return data.registrations;
-        return [];
-      }catch(e){
-        console.error(e);return [];
-      }
-    }
+  const formatRow = (r) => {
+    const tr = ce('tr');
+    tr.append(
+      ce('td',{textContent:r.playerName||'-'}),
+      ce('td',{textContent:r.ffuid||'-'}),
+      ce('td',{textContent:r.mode||'-'}),
+      ce('td',{textContent:r.city||'-'})
+    );
+    return tr;
+  };
 
-    async function saveRegistration(newItem){
-      // Load existing, append, then PUT
-      const all = await loadRegistrations();
-      const withTime = { ...newItem, createdAt: new Date().toISOString() };
-      all.unshift(withTime);
-      const body = JSON.stringify(all, null, 2);
-      const res = await fetch(BLOB_URL, {
-        method:'PUT',
-        mode:'cors',
-        headers:{'Content-Type':'application/json'},
-        body
-      });
-      if(!res.ok){
-        throw new Error('Failed to save: ' + res.status);
-      }
-      return withTime;
-    }
+  // ====== DATA LAYER ======
+  async function loadRegistrations(){
+    try{
+      const res = await fetch(BLOB_URL, {method:'GET', headers:{'Accept':'application/json'}});
+      if(!res.ok) return [];
+      const data = await res.json().catch(()=>[]);
+      if(Array.isArray(data)) return data;
+      if(data && Array.isArray(data.registrations)) return data.registrations;
+      return [];
+    }catch(e){return [];}
+  }
 
-    // ====== UI BINDINGS ======
-    async function refreshTable(){
-      const tbody = qs('#regTable');
-      tbody.innerHTML = '<tr><td colspan="4" class="muted">Loading…</td></tr>';
-      const rows = await loadRegistrations();
-      tbody.innerHTML = '';
-      if(!rows.length){
-        tbody.append(ce('tr'));
-        tbody.firstChild.append(ce('td',{colSpan:4,textContent:'No registrations yet. Be the first!'}));
-        return;
-      }
-      rows.slice(0,20).forEach(r=> tbody.append(formatRow(r)));
-    }
-
-    function validatePhone(n){ return /^[0-9]{10}$/.test(n||''); }
-    function validateUID(uid){ return /^[0-9]{4,}$/.test(uid||''); }
-
-    async function onSubmit(e){
-      e.preventDefault();
-      const form = e.currentTarget;
-      const data = Object.fromEntries(new FormData(form).entries());
-
-      // Basic validations
-      if(!data.playerName || !data.ffuid || !data.whatsapp){
-        toast('Please fill all required fields.', false); return;
-      }
-      if(!validateUID(data.ffuid)){
-        toast('Enter a valid Free Fire UID.', false); return;
-      }
-      if(!validatePhone(data.whatsapp)){
-        toast('Enter a valid 10-digit WhatsApp number.', false); return;
-      }
-      if(!qs('#agree').checked){
-        toast('Please accept the fair-play rules.', false); return;
-      }
-
-      setStatus('Submitting…');
-      try{
-        const saved = await saveRegistration({
-          playerName: data.playerName.trim(),
-          ffuid: data.ffuid.trim(),
-          mode: data.mode,
-          whatsapp: data.whatsapp.trim(),
-          city: (data.city||'').trim(),
-          age: (data.age||'').trim(),
-          ref: data.ref,
-          notes: (data.notes||'').trim()
-        });
-        toast('Registered! We will contact you on WhatsApp.');
-        form.reset();
-        qs('#agree').checked = false;
-        setStatus('Success! Your slot will be confirmed on WhatsApp.');
-        refreshTable();
-      }catch(err){
-        console.error(err);
-        toast('Could not save. Please try again.', false);
-        setStatus('Error: Failed to submit.');
-      }
-    }
-
-    // Init
-    document.addEventListener('DOMContentLoaded', ()=>{
-      qs('#yy').textContent = new Date().getFullYear();
-      refreshTable();
-      qs('#regForm').addEventListener('submit', onSubmit);
+  async function saveRegistration(newItem){
+    const all = await loadRegistrations();
+    const withTime = { ...newItem, createdAt: new Date().toISOString() };
+    all.unshift(withTime);
+    const body = JSON.stringify(all, null, 2);
+    const res = await fetch(BLOB_URL, {
+      method:'PUT',
+      mode:'cors',
+      headers:{'Content-Type':'application/json'},
+      body
     });
-  </script>
+    if(!res.ok) throw new Error('Failed to save: ' + res.status);
+    return withTime;
+  }
+
+  // ====== UI BINDINGS ======
+  async function refreshTable(){
+    const tbody = qs('#regTable');
+    tbody.innerHTML = '<tr><td colspan="4" class="muted">Loading…</td></tr>';
+    const rows = await loadRegistrations();
+    tbody.innerHTML = '';
+    if(!rows.length){
+      const tr = ce('tr');
+      tr.append(ce('td',{colSpan:4,textContent:'No registrations yet. Be the first!'}));
+      tbody.append(tr);
+      return;
+    }
+    rows.slice(0,20).forEach(r=> tbody.append(formatRow(r)));
+  }
+
+  function validatePhone(n){ return /^[0-9]{10}$/.test(n||''); }
+  function validateUID(uid){ return /^[0-9]{4,}$/.test(uid||''); }
+
+  async function onSubmit(e){
+    e.preventDefault();
+    const form = e.currentTarget;
+    const data = Object.fromEntries(new FormData(form).entries());
+
+    // Validations
+    if(!data.playerName || !data.ffuid || !data.whatsapp){
+      toast('Please fill all required fields.', false); return;
+    }
+    if(!validateUID(data.ffuid)){
+      toast('Enter a valid Free Fire UID.', false); return;
+    }
+    if(!validatePhone(data.whatsapp)){
+      toast('Enter a valid 10-digit WhatsApp number.', false); return;
+    }
+    if(!qs('#agree').checked){
+      toast('Please accept the fair-play rules.', false); return;
+    }
+
+    // Razorpay Payment
+    var options = {
+      "key": "rzp_live_JmgFv3psLlrZFr", // यहाँ अपना Razorpay Key डालें
+      "amount": 1000, // पैसे पैसे में, 10 रुपये = 1000 पैसे
+      "currency": "INR",
+      "name": "Bazaarika Tournament",
+      "description": "Registration Fee ₹10",
+      "handler": async function (response){
+        try{
+          await saveRegistration({
+            playerName: data.playerName.trim(),
+            ffuid: data.ffuid.trim(),
+            mode: data.mode,
+            whatsapp: data.whatsapp.trim(),
+            city: (data.city||'').trim(),
+            age: (data.age||'').trim(),
+            ref: data.ref,
+            notes: (data.notes||'').trim(),
+            payment_id: response.razorpay_payment_id
+          });
+          toast('Payment successful! You are registered.', true);
+          form.reset();
+          qs('#agree').checked = false;
+          setStatus('Success! Your slot will be confirmed on WhatsApp.');
+          refreshTable();
+        }catch(err){
+          toast('Error saving registration.', false);
+        }
+      },
+      "prefill": {
+        "name": data.playerName,
+        "contact": data.whatsapp
+      },
+      "theme": { "color": "#00e6ff" }
+    };
+    var rzp = new Razorpay(options);
+    rzp.open();
+  }
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    qs('#yy').textContent = new Date().getFullYear();
+    refreshTable();
+    qs('#regForm').addEventListener('submit', onSubmit);
+  });
+</script>
+
 </body>
 </html>
