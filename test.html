@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ZapUPI Gateway — Demo Payment Page</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+    body{margin:0;background:#f5f7fb;color:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
+    .card{width:100%;max-width:520px;background:#fff;border-radius:12px;box-shadow:0 8px 30px rgba(20,30,50,.08);padding:22px;}
+    h2{margin:0 0 6px 0;font-size:20px;}
+    p.lead{margin:0 0 18px 0;color:#555;font-size:14px;}
+    label{display:block;font-size:13px;margin:12px 0 6px;}
+    input[type="text"], input[type="tel"], input[type="number"], input[type="url"]{
+      width:100%;padding:10px 12px;border:1px solid #e3e7ee;border-radius:8px;font-size:15px;
+    }
+    .row{display:flex;gap:12px;}
+    .row .col{flex:1}
+    button{margin-top:16px;width:100%;padding:12px;border-radius:10px;border:0;background:#0b63d8;color:#fff;font-weight:600;font-size:15px;cursor:pointer}
+    button[disabled]{opacity:0.6;cursor:default}
+    .muted{color:#666;font-size:13px;margin-top:8px}
+    .result{margin-top:14px;padding:12px;border-radius:8px;background:#f4f7fb;border:1px solid #e6eefc;font-size:14px}
+    .small{font-size:13px}
+    .note{margin-top:12px;padding:10px;border-radius:8px;background:#fff6e6;border:1px solid #ffe9c2;color:#6a4a00}
+    .footer-row{display:flex;gap:8px;margin-top:12px}
+    .ghost{background:transparent;border:1px solid #cfd8e7;color:#1f2b45;padding:10px;border-radius:8px;cursor:pointer}
+  </style>
+</head>
+<body>
+  <div class="card" role="region" aria-label="Payment form">
+    <h2>Bazaarika — Demo Payment</h2>
+    <p class="lead">Apna naam, mobile aur amount daal kar payment order banayein. (Demo)</p>
+
+    <!-- PAYMENT FORM -->
+    <form id="paymentForm">
+      <label for="name">Full name</label>
+      <input id="name" name="name" type="text" placeholder="Aapka naam" required />
+
+      <label for="mobile">Mobile (optional)</label>
+      <input id="mobile" name="mobile" type="tel" placeholder="Example: 9123456789" maxlength="12" />
+
+      <label for="amount">Amount (INR)</label>
+      <input id="amount" name="amount" type="number" min="1" step="1" placeholder="100" required />
+
+      <label for="remark">Remark (optional)</label>
+      <input id="remark" name="remark" type="text" placeholder="Order ke liye note (optional)" />
+
+      <label for="redirect">Redirect URL (optional)</label>
+      <input id="redirect" name="redirect" type="url" placeholder="https://example.com/after-payment" />
+
+      <div class="footer-row">
+        <button id="createOrderBtn" type="submit">Create Order & Go to Payment</button>
+        <button id="checkStatusBtn" type="button" class="ghost">Check Order Status</button>
+      </div>
+    </form>
+
+    <div id="info" class="result" style="display:none"></div>
+
+    <div id="statusPanel" style="display:none;margin-top:12px">
+      <label for="checkOrderId">Order ID for status check</label>
+      <input id="checkOrderId" type="text" placeholder="ORDER1234 (or auto-filled)" />
+      <div class="footer-row">
+        <button id="doCheckBtn" class="ghost" type="button">Check Now</button>
+        <button id="clearBtn" class="ghost" type="button">Clear</button>
+      </div>
+      <div id="statusResult" class="result" style="display:none"></div>
+    </div>
+
+    <div class="note small">
+      <strong>Warning:</strong> Yeh demo code client-side se API keys bhejta hai — production mein ye insecure hai.
+      <br>Server-side proxy use karein jahan aap <code>token_key</code> aur <code>secret_key</code> safe rakhen.
+    </div>
+  </div>
+
+<script>
+/*
+  ZapUPI Demo Client
+  - Uses create-order and order-status endpoints (application/x-www-form-urlencoded)
+  - Replace token_key/secret_key below if needed.
+  - For production: DO NOT put secret_key in client-side.
+*/
+
+const API_CREATE = 'https://api.zapupi.com/api/create-order';
+const API_STATUS = 'https://api.zapupi.com/api/order-status';
+
+// === REPLACE THESE (if the user gave keys already) ===
+// NOTE: The user provided these keys in the prompt; demo uses them as-is.
+// For production, remove these from client-side and call from server.
+const TOKEN_KEY = 'e221f42e221b4e37a7db3064c677718b';
+const SECRET_KEY = '71c2abbdaf6248281a6943397455cd36';
+
+const form = document.getElementById('paymentForm');
+const info = document.getElementById('info');
+const createBtn = document.getElementById('createOrderBtn');
+const checkStatusBtn = document.getElementById('checkStatusBtn');
+const statusPanel = document.getElementById('statusPanel');
+const checkOrderIdInput = document.getElementById('checkOrderId');
+const doCheckBtn = document.getElementById('doCheckBtn');
+const statusResult = document.getElementById('statusResult');
+const clearBtn = document.getElementById('clearBtn');
+
+function showInfo(html, show=true){
+  info.style.display = show ? 'block' : 'none';
+  info.innerHTML = html;
+}
+
+function showStatusResult(html){
+  statusResult.style.display = 'block';
+  statusResult.innerHTML = html;
+}
+
+function disableCreate(state){
+  createBtn.disabled = state;
+  createBtn.textContent = state ? 'Processing...' : 'Create Order & Go to Payment';
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const name = document.getElementById('name').value.trim();
+  const mobile = document.getElementById('mobile').value.trim();
+  const amount = document.getElementById('amount').value.trim();
+  const remark = document.getElementById('remark').value.trim();
+  const redirect_url = document.getElementById('redirect').value.trim();
+
+  if(!amount || Number(amount) <= 0){
+    showInfo('कृपया वैध amount डालें।');
+    return;
+  }
+
+  // Create a unique order id (client-side). In production the server should generate.
+  const order_id = 'ORD' + Date.now() + Math.floor(Math.random()*900+100);
+
+  disableCreate(true);
+  showInfo('Order बना रहे हैं... कृपया प्रतीक्षा करें।');
+
+  const formBody = new URLSearchParams();
+  formBody.append('token_key', TOKEN_KEY);
+  formBody.append('secret_key', SECRET_KEY);
+  formBody.append('amount', amount);
+  formBody.append('order_id', order_id);
+  if(mobile) formBody.append('custumer_mobile', mobile);
+  if(remark) formBody.append('remark', remark);
+  if(redirect_url) formBody.append('redirect_url', redirect_url);
+
+  try {
+    const resp = await fetch(API_CREATE, {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-www-form-urlencoded'},
+      body: formBody.toString()
+    });
+
+    if(!resp.ok){
+      const txt = await resp.text();
+      showInfo('Server error: ' + resp.status + ' — ' + txt);
+      disableCreate(false);
+      return;
+    }
+
+    const data = await resp.json();
+    if(data.status && data.status.toLowerCase() === 'success' && data.payment_url){
+      const paymentUrl = data.payment_url;
+      showInfo(
+        `<strong>Order Created:</strong> <span class="small">${order_id}</span><br/>
+         <a href="${paymentUrl}" target="_blank" rel="noopener">Payment page kholne ke liye yahan click karein (naye tab mein)</a>
+         <div class="muted small" style="margin-top:8px">Agar automatic open nahi hua to link par click karein.</div>`
+      );
+
+      // Auto-open payment in new tab/window
+      window.open(paymentUrl, '_blank');
+
+      // prefill status check field
+      checkOrderIdInput.value = order_id;
+      statusPanel.style.display = 'block';
+    } else {
+      // error response from API
+      let msg = data.message || JSON.stringify(data);
+      showInfo('API error: ' + msg);
+    }
+  } catch (err) {
+    showInfo('Request failed: ' + err.message);
+  } finally {
+    disableCreate(false);
+  }
+});
+
+// Toggle status panel
+checkStatusBtn.addEventListener('click', () => {
+  statusPanel.style.display = statusPanel.style.display === 'block' ? 'none' : 'block';
+});
+
+// Check order status
+doCheckBtn.addEventListener('click', async () => {
+  const order_id = checkOrderIdInput.value.trim();
+  if(!order_id){
+    showStatusResult('कृपया order id दर्ज करें।');
+    return;
+  }
+
+  statusResult.style.display = 'none';
+  showStatusResult('Checking order status...');
+
+  const formBody = new URLSearchParams();
+  formBody.append('token_key', TOKEN_KEY);
+  formBody.append('secret_key', SECRET_KEY);
+  formBody.append('order_id', order_id);
+
+  try {
+    const resp = await fetch(API_STATUS, {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-www-form-urlencoded'},
+      body: formBody.toString()
+    });
+    if(!resp.ok){
+      const txt = await resp.text();
+      showStatusResult('Server error: ' + resp.status + ' — ' + txt);
+      return;
+    }
+    const data = await resp.json();
+    if(data.status && data.status.toLowerCase() === 'success' && data.data){
+      const d = data.data;
+      const html = `
+        <strong>Status:</strong> ${d.status || '—'}<br/>
+        <strong>Amount:</strong> ${d.amount || '—'}<br/>
+        <strong>Txn ID / UTR:</strong> ${d.txn_id || d.utr || '—'}<br/>
+        <strong>Customer Mobile:</strong> ${d.custumer_mobile || '—'}<br/>
+        <strong>Remark:</strong> ${d.remark || '—'}<br/>
+        <strong>Created At:</strong> ${d.create_at || '—'}<br/>
+        <strong>Order ID:</strong> ${d.order_id || order_id}
+      `;
+      showStatusResult(html);
+    } else {
+      const msg = data.message || JSON.stringify(data);
+      showStatusResult('API response: ' + msg);
+    }
+  } catch (err) {
+    showStatusResult('Request failed: ' + err.message);
+  }
+});
+
+clearBtn.addEventListener('click', () => {
+  checkOrderIdInput.value = '';
+  statusResult.style.display = 'none';
+});
+</script>
+</body>
+</html>
