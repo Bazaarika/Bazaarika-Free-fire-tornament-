@@ -1,133 +1,60 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bazaarika Payment Gateway</title>
-<style>
-body{font-family:sans-serif;background:#f0f2f5;padding:20px;}
-.container{max-width:500px;margin:auto;background:#fff;padding:25px;border-radius:10px;box-shadow:0 0 15px rgba(0,0,0,0.1);}
-input,button{width:100%;padding:10px;margin:5px 0;border-radius:6px;border:1px solid #ccc;font-size:16px;}
-button{background:#0b63d8;color:#fff;border:none;cursor:pointer;}
-button:disabled{opacity:0.6;}
-.result{padding:10px;margin-top:10px;background:#eef;border-radius:6px;white-space:pre-wrap;}
-</style>
+    <meta charset="UTF-8">
+    <title>Simple Payment Gateway (ZapUpi)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body { font-family: Arial, sans-serif; padding:30px; max-width:350px; margin:auto;}
+      input, button { width: 100%; margin: 8px 0; padding:8px; }
+      .msg { margin:12px 0;color: red;}
+    </style>
 </head>
 <body>
-<div class="container">
-<h2>Bazaarika Payment</h2>
-<form id="paymentForm">
-<input type="text" id="name" placeholder="Aapka Naam" required>
-<input type="tel" id="mobile" placeholder="Mobile (optional)">
-<input type="number" id="amount" placeholder="Amount INR" required>
-<input type="text" id="remark" placeholder="Remark (optional)">
-<input type="url" id="redirect" placeholder="Redirect URL (optional)">
-<button type="submit" id="payBtn">Pay Now</button>
-</form>
+    <h2>Send Payment</h2>
+    <form id="payForm">
+        <input type="number" name="amount" placeholder="Amount (₨)" required min="1">
+        <input type="text" name="order_id" placeholder="Order ID" required>
+        <input type="text" name="custumer_mobile" placeholder="Mobile (Optional)">
+        <input type="text" name="remark" placeholder="Remark (Optional)">
+        <button type="submit">Pay Now</button>
+    </form>
+    <div class="msg" id="msg"></div>
 
-<div id="info" class="result" style="display:none"></div>
+    <script>
+      // DO NOT share these in public projects!
+      const token_key = "e221f42e221b4e37a7db3064c677718b";
+      const secret_key = "71c2abbdaf6248281a6943397455cd36";
 
-<hr>
-<h3>Check Order Status</h3>
-<input type="text" id="checkOrderId" placeholder="Order ID">
-<button id="statusBtn">Check Status</button>
-<div id="statusResult" class="result" style="display:none"></div>
+      document.getElementById('payForm').onsubmit = async function(e){
+          e.preventDefault();
+          const form = e.target;
+          const fd = new FormData(form);
+          fd.append('token_key', token_key);
+          fd.append('secret_key', secret_key);
 
-<div style="margin-top:15px;font-size:12px;color:#555;">
-⚠️ ध्यान दें: ये demo code client-side से secret भेजता है। Production में यह सुरक्षित नहीं है। 
-</div>
-</div>
+          document.getElementById("msg").innerText = "Processing...";
 
-<script>
-const TOKEN_KEY = 'e221f42e221b4e37a7db3064c677718b';
-const SECRET_KEY = '71c2abbdaf6248281a6943397455cd36';
-
-const paymentForm = document.getElementById('paymentForm');
-const payBtn = document.getElementById('payBtn');
-const info = document.getElementById('info');
-const statusBtn = document.getElementById('statusBtn');
-const statusResult = document.getElementById('statusResult');
-const checkOrderId = document.getElementById('checkOrderId');
-
-function showInfo(msg){ info.style.display='block'; info.innerHTML=msg; }
-
-paymentForm.addEventListener('submit', async e=>{
-    e.preventDefault();
-    const order_id = 'ORD'+Date.now();
-    const amount = document.getElementById('amount').value;
-    const mobile = document.getElementById('mobile').value;
-    const remark = document.getElementById('remark').value;
-    const redirect = document.getElementById('redirect').value;
-
-    if(!amount || Number(amount)<=0){ showInfo('कृपया valid amount डालें।'); return; }
-
-    payBtn.disabled = true;
-    showInfo('Order बना रहे हैं...');
-
-    const formBody = new URLSearchParams();
-    formBody.append('token_key', TOKEN_KEY);
-    formBody.append('secret_key', SECRET_KEY);
-    formBody.append('amount', amount);
-    formBody.append('order_id', order_id);
-    if(mobile) formBody.append('custumer_mobile', mobile);
-    if(remark) formBody.append('remark', remark);
-    if(redirect) formBody.append('redirect_url', redirect);
-
-    try{
-        const resp = await fetch('https://api.zapupi.com/api/create-order',{
-            method:'POST',
-            headers:{'Content-Type':'application/x-www-form-urlencoded'},
-            body: formBody.toString()
-        });
-        const text = await resp.text();
-
-        let data;
-        try { data = JSON.parse(text); } 
-        catch(err){
-            showInfo('API Error: '+text);
-            payBtn.disabled = false;
-            return;
-        }
-
-        if(data.status==='success' && data.payment_url){
-            showInfo(`Order ID: ${data.order_id}\n<a href="${data.payment_url}" target="_blank">Click here to pay</a>`);
-            checkOrderId.value = data.order_id;
-            window.open(data.payment_url,'_blank');
-        } else {
-            showInfo('Error: '+(data.message||JSON.stringify(data)));
-        }
-    } catch(err){
-        showInfo('Request failed: '+err.message);
-    }
-    payBtn.disabled = false;
-});
-
-statusBtn.addEventListener('click', async ()=>{
-    const order_id = checkOrderId.value.trim();
-    if(!order_id){ alert('Order ID डालें'); return; }
-
-    statusResult.style.display='block'; statusResult.innerText='Checking...';
-
-    const formBody = new URLSearchParams();
-    formBody.append('token_key', TOKEN_KEY);
-    formBody.append('secret_key', SECRET_KEY);
-    formBody.append('order_id', order_id);
-
-    try{
-        const resp = await fetch('https://api.zapupi.com/api/order-status',{
-            method:'POST',
-            headers:{'Content-Type':'application/x-www-form-urlencoded'},
-            body: formBody.toString()
-        });
-        const text = await resp.text();
-        let data;
-        try{ data = JSON.parse(text); } catch(e){ statusResult.innerText = text; return; }
-
-        statusResult.innerText = JSON.stringify(data,null,2);
-    } catch(err){
-        statusResult.innerText = 'Request failed: '+err.message;
-    }
-});
-</script>
+          const data = new URLSearchParams([...fd]).toString();
+          try {
+              const res = await fetch("https://api.zapupi.com/api/create-order", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                  },
+                  body: data
+              });
+              const json = await res.json();
+              if(json.status === "success" && json.payment_url){
+                  document.getElementById("msg").innerText = "Redirecting...";
+                  window.location.href = json.payment_url;
+              } else {
+                  document.getElementById("msg").innerText = json.message || "Failed to create order.";
+              }
+          } catch(err){
+              document.getElementById("msg").innerText = "Network error. Try again.";
+          }
+      }
+    </script>
 </body>
 </html>
